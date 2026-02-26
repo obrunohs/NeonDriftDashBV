@@ -10,6 +10,7 @@ body{
     background:black;
     font-family:Arial;
     color:white;
+    touch-action: none; /* evita scroll no mobile */
 }
 canvas{ display:block; }
 #menu{
@@ -99,6 +100,10 @@ canvas.height = window.innerHeight;
 
 let scaleFactor = canvas.height / 900; // Base PC height = 900
 
+/* ================= EVITA SCROLL NO MOBILE ================= */
+document.body.addEventListener('touchstart', e => e.preventDefault(), {passive:false});
+document.body.addEventListener('touchmove', e => e.preventDefault(), {passive:false});
+
 /* ================= SOM ================= */
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -139,8 +144,8 @@ function playPowerUpSound(){
 }
 
 /* ================= CONFIG ================= */
-let gravity = 0.7 * scaleFactor;
-let jumpForce = -13 * scaleFactor;
+let gravity = 0.7 * Math.sqrt(scaleFactor);
+let jumpForce = -13 * Math.sqrt(scaleFactor);
 let velocityY = 0;
 let speed = 6 * scaleFactor;
 let spawnTimer = 0;
@@ -152,7 +157,7 @@ let gameState = "menu";
 let gameStarted = false;
 let canJump = true;
 
-let cube = { x:200, y:canvas.height/2, size:50 * scaleFactor, immune:false, immuneTimer:0 };
+let cube = { x:200, y:canvas.height - groundHeight - 50*scaleFactor, size:50 * scaleFactor, immune:false, immuneTimer:0 };
 let cubeVisible = true;
 
 let obstacles = [];
@@ -313,7 +318,7 @@ function resetGame(){
     rotation = 0;
     spawnTimer = 0;
     nextPowerUpScore = 30;
-    cube.y = canvas.height/2;
+    cube.y = canvas.height - groundHeight - cube.size;
     cubeVisible = true;
     cube.immune = false;
     cube.immuneTimer = 0;
@@ -340,7 +345,7 @@ function backToMenu(){
     menuAudio.play();
 }
 
-/* ================= CONTROLES PARA CELULAR ================= */
+/* ================= CONTROLES ================= */
 function jumpAction(){
     if(gameState!=="playing") return;
 
@@ -363,7 +368,7 @@ document.addEventListener("keydown",e=>{
 // Mouse PC
 document.addEventListener("mousedown", jumpAction);
 
-// Toque celular
+// Touch Mobile
 document.addEventListener("touchstart", jumpAction);
 
 /* ================= UPDATE ================= */
@@ -441,6 +446,7 @@ function update(){
                 }
             }
 
+            // Colisão com chão
             if(cube.y+cube.size>=canvas.height-groundHeight){
                 cube.y=canvas.height-groundHeight-cube.size;
                 velocityY=0;
