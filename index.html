@@ -10,7 +10,6 @@ body{
     background:black;
     font-family:Arial;
     color:white;
-    touch-action: none;
 }
 canvas{ display:block; }
 #menu{
@@ -98,50 +97,17 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-let scaleFactor = canvas.height / 900; // Base PC height = 900
+let scaleFactor = canvas.height / 900;
 
-/* ================= EVITA SCROLL NO CANVAS ================= */
-canvas.addEventListener('touchstart', e => e.preventDefault(), {passive:false});
-canvas.addEventListener('touchmove', e => e.preventDefault(), {passive:false});
+/* ================= EVITA SCROLL DO CANVAS ================= */
+canvas.addEventListener('touchstart', e=> e.preventDefault(), {passive:false});
+canvas.addEventListener('touchmove', e=> e.preventDefault(), {passive:false});
 
 /* ================= SOM ================= */
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-function playJumpSound(){
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.type = "square";
-    osc.frequency.value = 600;
-    gain.gain.value = 0.1;
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.1);
-}
-
-function playExplosionSound(){
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.type = "square";
-    osc.frequency.value = 100;
-    gain.gain.value = 0.2;
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.3);
-}
-
-function playPowerUpSound(){
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.type = "triangle";
-    osc.frequency.value = 800;
-    gain.gain.value = 0.15;
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.15);
-}
+function playJumpSound(){ const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.type="square"; osc.frequency.value=600; gain.gain.value=0.1; osc.start(); osc.stop(audioCtx.currentTime+0.1);}
+function playExplosionSound(){ const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.type="square"; osc.frequency.value=100; gain.gain.value=0.2; osc.start(); osc.stop(audioCtx.currentTime+0.3);}
+function playPowerUpSound(){ const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.type="triangle"; osc.frequency.value=800; gain.gain.value=0.15; osc.start(); osc.stop(audioCtx.currentTime+0.15);}
 
 /* ================= CONFIG ================= */
 let gravity = 0.7 * Math.sqrt(scaleFactor);
@@ -151,7 +117,6 @@ let speed = 6 * scaleFactor;
 let spawnTimer = 0;
 let rotation = 0;
 let gridOffset = 0;
-
 let groundHeight = 80 * scaleFactor;
 let gameState = "menu";
 let gameStarted = false;
@@ -159,30 +124,18 @@ let canJump = true;
 
 let cube = { x:200, y:canvas.height - groundHeight - 50*scaleFactor, size:50 * scaleFactor, immune:false, immuneTimer:0 };
 let cubeVisible = true;
-
-let obstacles = [];
-let particles = [];
-let powerUps = [];
-let score = 0;
-let highScore = localStorage.getItem("neonHighScore") || 0;
-let nextPowerUpScore = 30;
+let obstacles=[], particles=[], powerUps=[];
+let score=0, highScore=localStorage.getItem("neonHighScore")||0, nextPowerUpScore=30;
 
 /* ================= SKINS ================= */
 let skins = [
-    {color:"#00ffff", unlock:0},
-    {color:"#ff00ff", unlock:0},
-    {color:"#00ff00", unlock:0},
-    {color:"#ffff00", unlock:0},
-    {color:"#ff0000", unlock:200},
-    {color:"#ff8800", unlock:400},
-    {color:"#ffffff", unlock:600},
-    {color:"#0088ff", unlock:800},
-    {color:"#ff0088", unlock:1000}
+    {color:"#00ffff", unlock:0},{color:"#ff00ff", unlock:0},{color:"#00ff00", unlock:0},
+    {color:"#ffff00", unlock:0},{color:"#ff0000", unlock:200},{color:"#ff8800", unlock:400},
+    {color:"#ffffff", unlock:600},{color:"#0088ff", unlock:800},{color:"#ff0088", unlock:1000}
 ];
 
 let unlockedSkins = JSON.parse(localStorage.getItem("unlockedSkins")) || [0,1,2,3];
 let currentSkin = 0;
-
 const skinsDiv = document.getElementById("skins");
 const skinIndicatorInner = document.getElementById("skinIndicatorInner");
 
@@ -191,7 +144,6 @@ function createSkinBox(index){
     const box = document.createElement("div");
     box.className = "skin-box";
     box.style.background = skin.color;
-
     if(!unlockedSkins.includes(index)){
         box.classList.add("locked");
         const lockText = document.createElement("div");
@@ -199,7 +151,6 @@ function createSkinBox(index){
         lockText.innerText = skin.unlock;
         box.appendChild(lockText);
     }
-
     box.onclick = () => {
         if(!unlockedSkins.includes(index)) return;
         document.querySelectorAll(".skin-box").forEach(b=>b.classList.remove("skin-selected"));
@@ -207,18 +158,15 @@ function createSkinBox(index){
         currentSkin = index;
         skinIndicatorInner.style.background = skin.color;
     };
-
     skinsDiv.appendChild(box);
 }
-
 for(let i=0;i<skins.length;i++) createSkinBox(i);
-
 document.querySelector(".skin-box").classList.add("skin-selected");
 skinIndicatorInner.style.background = skins[currentSkin].color;
 
 function checkUnlock(){
     skins.forEach((skin,index)=>{
-        if(score >= skin.unlock && !unlockedSkins.includes(index)){
+        if(score>=skin.unlock && !unlockedSkins.includes(index)){
             unlockedSkins.push(index);
             localStorage.setItem("unlockedSkins", JSON.stringify(unlockedSkins));
             alert("Nova Skin Desbloqueada!");
@@ -229,36 +177,17 @@ function checkUnlock(){
 
 /* ================= GRID ================= */
 function drawGrid(){
-    ctx.strokeStyle = "#111";
-    ctx.lineWidth = 1;
-    for(let x=0; x<canvas.width; x+=40*scaleFactor){
-        ctx.beginPath();
-        ctx.moveTo(x,0);
-        ctx.lineTo(x,canvas.height);
-        ctx.stroke();
-    }
-    for(let y=0; y<canvas.height; y+=40*scaleFactor){
-        ctx.beginPath();
-        ctx.moveTo(0,y + gridOffset);
-        ctx.lineTo(canvas.width,y + gridOffset);
-        ctx.stroke();
-    }
+    ctx.strokeStyle="#111"; ctx.lineWidth=1;
+    for(let x=0;x<canvas.width;x+=40*scaleFactor){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
+    for(let y=0;y<canvas.height;y+=40*scaleFactor){ ctx.beginPath(); ctx.moveTo(0,y+gridOffset); ctx.lineTo(canvas.width,y+gridOffset); ctx.stroke(); }
 }
 
 /* ================= OBSTÁCULOS ================= */
 function createObstacle(){
-    let width = 60 * scaleFactor;
-    let type=Math.floor(Math.random()*3);
-
-    if(type===0){
-        obstacles.push({x:canvas.width,y:canvas.height-groundHeight-150*scaleFactor,width:width,height:150*scaleFactor});
-    }
-    if(type===1){
-        obstacles.push({x:canvas.width,y:0,width:width,height:Math.random()*200*scaleFactor + 50*scaleFactor});
-    }
-    if(type===2){
-        let gap=200*scaleFactor;
-        let topHeight=Math.random()*200*scaleFactor + 50*scaleFactor;
+    let width=60*scaleFactor,type=Math.floor(Math.random()*3);
+    if(type===0){ obstacles.push({x:canvas.width,y:canvas.height-groundHeight-150*scaleFactor,width:width,height:150*scaleFactor}); }
+    if(type===1){ obstacles.push({x:canvas.width,y:0,width:width,height:Math.random()*200*scaleFactor+50*scaleFactor}); }
+    if(type===2){ let gap=200*scaleFactor,topHeight=Math.random()*200*scaleFactor+50*scaleFactor;
         obstacles.push({x:canvas.width,y:0,width:width,height:topHeight});
         obstacles.push({x:canvas.width,y:topHeight+gap,width:width,height:canvas.height-groundHeight-(topHeight+gap)});
     }
@@ -266,269 +195,60 @@ function createObstacle(){
 
 /* ================= POWER-UP ================= */
 function spawnPowerUp(){
-    let y;
-    let attempts = 0;
-    do {
-        y = Math.random()*(canvas.height-groundHeight-50*scaleFactor);
-        attempts++;
-        let colliding = obstacles.some(o=> !(y+40*scaleFactor < o.y || y > o.y+o.height));
-        if(!colliding) break;
-    } while(attempts < 10);
-
-    powerUps.push({x:canvas.width, y:y, size:40*scaleFactor, blinkTimer:0});
+    let y, attempts=0;
+    do { y=Math.random()*(canvas.height-groundHeight-50*scaleFactor); attempts++;
+        let colliding=obstacles.some(o=>!(y+40*scaleFactor<o.y || y>o.y+o.height)); if(!colliding) break;
+    } while(attempts<10);
+    powerUps.push({x:canvas.width,y:y,size:40*scaleFactor,blinkTimer:0});
 }
 
 /* ================= EXPLOSÃO ================= */
-function createExplosion(){
-    for(let i=0;i<40;i++){
-        particles.push({
-            x:cube.x+cube.size/2,
-            y:cube.y+cube.size/2,
-            vx:(Math.random()-0.5)*10,
-            vy:(Math.random()-0.5)*10,
-            life:60
-        });
-    }
-    cubeVisible = false;
-    playExplosionSound();
-}
+function createExplosion(){ for(let i=0;i<40;i++){ particles.push({x:cube.x+cube.size/2,y:cube.y+cube.size/2,vx:(Math.random()-0.5)*10,vy:(Math.random()-0.5)*10,life:60}); } cubeVisible=false; playExplosionSound(); }
 
 /* ================= MÚSICA MENU ================= */
-const menuAudio = document.getElementById("menuMusic");
-let menuStarted = false;
-
-function startMenuMusic() {
-    if(menuStarted) return;
-    menuAudio.play().catch(()=>console.log("Clique ou toque para ativar a música"));
-    menuStarted = true;
-}
-
-document.addEventListener("click", startMenuMusic, {once:true});
-document.addEventListener("keydown", startMenuMusic, {once:true});
-document.addEventListener("touchstart", startMenuMusic, {once:true});
-
-/* ================= JOGO ================= */
-function resetGame(){
-    obstacles = [];
-    particles = [];
-    powerUps = [];
-    score = 0;
-    speed = 6 * scaleFactor;
-    velocityY = 0;
-    rotation = 0;
-    spawnTimer = 0;
-    nextPowerUpScore = 30;
-    cube.y = canvas.height - groundHeight - cube.size;
-    cubeVisible = true;
-    cube.immune = false;
-    cube.immuneTimer = 0;
-    gameStarted = false;
-    canJump = true;
-    gameState = "playing";
-    document.getElementById("gameoverMenu").style.display = "none";
-}
-
-function startGame(){
-    resetGame();
-    document.getElementById("menu").style.display="none";
-    if(menuAudio && !menuAudio.paused){
-        menuAudio.pause();
-    }
-}
-
-function backToMenu(){
-    document.getElementById("gameoverMenu").style.display="none";
-    document.getElementById("menu").style.display="block";
-    gameState="menu";
-
-    menuAudio.currentTime = 0;
-    menuAudio.play();
-}
+const menuAudio=document.getElementById("menuMusic");let menuStarted=false;
+function startMenuMusic(){ if(menuStarted) return; menuAudio.play().catch(()=>console.log("Clique ou toque para ativar a música")); menuStarted=true;}
+document.addEventListener("click",startMenuMusic,{once:true});
+document.addEventListener("keydown",startMenuMusic,{once:true});
+document.addEventListener("touchstart",startMenuMusic,{once:true});
 
 /* ================= CONTROLES ================= */
-function jumpAction(){
-    if(gameState!=="playing") return;
-
-    if(!gameStarted){
-        gameStarted = true;
-    }
-
-    if(canJump){
-        velocityY = jumpForce;
-        playJumpSound();
-        canJump = false;
-    }
-}
-
-// Teclado PC
-document.addEventListener("keydown",e=>{
-    if(e.code==="Space") jumpAction();
-});
-
-// Mouse PC
+function jumpAction(){ if(gameState!=="playing") return; if(!gameStarted) gameStarted=true; if(canJump){ velocityY=jumpForce; playJumpSound(); canJump=false;} }
+document.addEventListener("keydown",e=>{ if(e.code==="Space") jumpAction(); });
 document.addEventListener("mousedown", jumpAction);
+document.addEventListener("touchstart", e=>{ jumpAction(); }, {passive:false}); // global touch para jump
 
-// Touch Mobile
-document.addEventListener("touchstart", e=>{
-    if(e.target === canvas) jumpAction();
-}, {passive:false});
+/* ================= JOGO ================= */
+function resetGame(){ obstacles=[];particles=[];powerUps=[];score=0;speed=6*scaleFactor;velocityY=0;rotation=0;spawnTimer=0;nextPowerUpScore=30;cube.y=canvas.height-groundHeight-cube.size;cubeVisible=true;cube.immune=false;cube.immuneTimer=0;gameStarted=false;canJump=true;gameState="playing";document.getElementById("gameoverMenu").style.display="none";}
+function startGame(){ resetGame();document.getElementById("menu").style.display="none"; if(menuAudio && !menuAudio.paused) menuAudio.pause();}
+function backToMenu(){ document.getElementById("gameoverMenu").style.display="none";document.getElementById("menu").style.display="block";gameState="menu";menuAudio.currentTime=0;menuAudio.play(); }
 
 /* ================= UPDATE ================= */
 function update(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    drawGrid();
-    gridOffset+=speed*0.3;
-    if(gridOffset>40*scaleFactor) gridOffset=0;
-
-    if(gameState==="playing"){
-
-        if(gameStarted){
-            velocityY+=gravity;
-            cube.y+=velocityY;
-
-            if(cube.y < 0){
-                cube.y = 0;
-                velocityY = 0;
-            }
-
-            if(velocityY!==0) rotation+=0.1;
-
-            spawnTimer++;
-            if(spawnTimer>90){
-                createObstacle();
-                spawnTimer=0;
-                score++;
-                speed+=0.15*scaleFactor;
-                checkUnlock();
-            }
-
-            if(score >= nextPowerUpScore){
-                spawnPowerUp();
-                nextPowerUpScore += 30;
-            }
-
-            obstacles.forEach(o=>o.x-=speed);
-            obstacles=obstacles.filter(o=>o.x+o.width>0);
-
-            powerUps.forEach((p,i)=>{
-                p.x -= speed;
-                p.blinkTimer++;
-
-                if(Math.floor(p.blinkTimer/15)%2===0){
-                    ctx.fillStyle="red";
-                    ctx.font=(16*scaleFactor)+"px Arial";
-                    ctx.textAlign="center";
-                    ctx.fillText("POWER UP", p.x+p.size/2, p.y-5*scaleFactor);
-                }
-
-                if(cubeVisible && cube.x < p.x+p.size && cube.x+cube.size>p.x &&
-                   cube.y < p.y+p.size && cube.y+cube.size>p.y){
-                    cube.immune = true;
-                    cube.immuneTimer = 600; 
-                    powerUps.splice(i,1);
-                    playPowerUpSound();
-                }
-            });
-
-            if(cube.immune){
-                cube.immuneTimer--;
-                if(cube.immuneTimer<=0){
-                    cube.immune = false;
-                    cube.immuneTimer = 0;
-                }
-            }
-
-            for(let o of obstacles){
-                if(cubeVisible && !cube.immune && cube.x<o.x+o.width && cube.x+cube.size>o.x &&
-                   cube.y<o.y+o.height && cube.y+cube.size>o.y){
-                    if(gameState!=="exploding"){
-                        createExplosion();
-                        gameState="exploding";
-                    }
-                }
-            }
-
-            // Colisão com chão
-            if(cube.y+cube.size>=canvas.height-groundHeight){
-                cube.y=canvas.height-groundHeight-cube.size;
-                velocityY=0;
-                rotation=0;
-                canJump = true;
-            }
-        }
-    }
-
-    ctx.fillStyle="#111";
-    ctx.fillRect(0,canvas.height-groundHeight,canvas.width,groundHeight);
-    ctx.beginPath();
-    ctx.moveTo(0,canvas.height-groundHeight);
-    ctx.lineTo(canvas.width,canvas.height-groundHeight);
-    ctx.lineWidth=4;
-    ctx.shadowBlur=25;
-    ctx.shadowColor="#ff00ff";
-    ctx.strokeStyle="#ff00ff";
-    ctx.stroke();
-    ctx.shadowBlur=0;
-
-    if(cubeVisible){
-        ctx.save();
-        ctx.translate(cube.x+cube.size/2,cube.y+cube.size/2);
-        ctx.rotate(rotation);
-        ctx.shadowBlur=30;
-        ctx.shadowColor=skins[currentSkin].color;
-
-        if(cube.immune && cube.immuneTimer <= 180){
-            ctx.fillStyle = Math.floor(cube.immuneTimer/10)%2===0 ? "rgba(255,255,255,0.3)" : skins[currentSkin].color;
-        } else if(cube.immune){
-            ctx.fillStyle = "rgba(255,255,255,0.3)";
-        } else {
-            ctx.fillStyle = skins[currentSkin].color;
-        }
-
-        ctx.fillRect(-cube.size/2,-cube.size/2,cube.size,cube.size);
-        ctx.restore();
-    }
-
-    ctx.shadowBlur=25;
-    ctx.shadowColor="#ff00ff";
-    ctx.fillStyle="#ff00ff";
-    obstacles.forEach(o=>ctx.fillRect(o.x,o.y,o.width,o.height));
-
-    powerUps.forEach(p=>{
-        ctx.shadowBlur=20;
-        ctx.shadowColor="#00ffff";
-        ctx.fillStyle=(Math.floor(p.blinkTimer/15)%2===0)?"rgba(0,255,255,0.8)":"rgba(0,255,255,0.2)";
-        ctx.fillRect(p.x,p.y,p.size,p.size);
-    });
-
-    particles.forEach(p=>{
-        p.x += p.vx;
-        p.y += p.vy;
-        p.life--;
-    });
-    particles = particles.filter(p=>p.life>0);
-    ctx.fillStyle = skins[currentSkin].color;
-    particles.forEach(p=>ctx.fillRect(p.x,p.y,4,4));
-
-    ctx.shadowBlur=0;
-    ctx.fillStyle="#00ffff";
-    ctx.font=(25*scaleFactor)+"px Arial";
-    ctx.textAlign="left";
-    ctx.fillText("Score: "+score,20,30);
-    ctx.fillText("Recorde: "+highScore,20,60);
-
-    if(gameState==="exploding" && particles.length===0){
-        gameState="gameover";
-        document.getElementById("gameoverMenu").style.display="block";
-        if(score>highScore){
-            highScore=score;
-            localStorage.setItem("neonHighScore",highScore);
-        }
-    }
-
+    ctx.clearRect(0,0,canvas.width,canvas.height); drawGrid(); gridOffset+=speed*0.3; if(gridOffset>40*scaleFactor) gridOffset=0;
+    if(gameState==="playing"){ if(gameStarted){ velocityY+=gravity; cube.y+=velocityY; if(cube.y<0){ cube.y=0; velocityY=0; } if(velocityY!==0) rotation+=0.1;
+        spawnTimer++; if(spawnTimer>90){ createObstacle(); spawnTimer=0; score++; speed+=0.15*scaleFactor; checkUnlock(); }
+        if(score>=nextPowerUpScore){ spawnPowerUp(); nextPowerUpScore+=30; }
+        obstacles.forEach(o=>o.x-=speed); obstacles=obstacles.filter(o=>o.x+o.width>0);
+        powerUps.forEach((p,i)=>{ p.x-=speed; p.blinkTimer++; if(Math.floor(p.blinkTimer/15)%2===0){ ctx.fillStyle="red"; ctx.font=(16*scaleFactor)+"px Arial"; ctx.textAlign="center"; ctx.fillText("POWER UP", p.x+p.size/2, p.y-5*scaleFactor);} 
+        if(cubeVisible && cube.x<p.x+p.size && cube.x+cube.size>p.x && cube.y<p.y+p.size && cube.y+cube.size>p.y){ cube.immune=true; cube.immuneTimer=600; powerUps.splice(i,1); playPowerUpSound();} });
+        if(cube.immune){ cube.immuneTimer--; if(cube.immuneTimer<=0){ cube.immune=false; cube.immuneTimer=0; } }
+        for(let o of obstacles){ if(cubeVisible && !cube.immune && cube.x<o.x+o.width && cube.x+cube.size>o.x && cube.y<o.y+o.height && cube.y+cube.size>o.y){ if(gameState!=="exploding"){ createExplosion(); gameState="exploding"; } } }
+        if(cube.y+cube.size>=canvas.height-groundHeight){ cube.y=canvas.height-groundHeight-cube.size; velocityY=0; rotation=0; canJump=true; } 
+    }}
+    ctx.fillStyle="#111"; ctx.fillRect(0,canvas.height-groundHeight,canvas.width,groundHeight);
+    ctx.beginPath(); ctx.moveTo(0,canvas.height-groundHeight); ctx.lineTo(canvas.width,canvas.height-groundHeight); ctx.lineWidth=4; ctx.shadowBlur=25; ctx.shadowColor="#ff00ff"; ctx.strokeStyle="#ff00ff"; ctx.stroke(); ctx.shadowBlur=0;
+    if(cubeVisible){ ctx.save(); ctx.translate(cube.x+cube.size/2,cube.y+cube.size/2); ctx.rotate(rotation); ctx.shadowBlur=30; ctx.shadowColor=skins[currentSkin].color;
+        if(cube.immune && cube.immuneTimer<=180){ ctx.fillStyle = Math.floor(cube.immuneTimer/10)%2===0 ? "rgba(255,255,255,0.3)" : skins[currentSkin].color; } 
+        else if(cube.immune){ ctx.fillStyle="rgba(255,255,255,0.3)"; } else{ ctx.fillStyle = skins[currentSkin].color; }
+        ctx.fillRect(-cube.size/2,-cube.size/2,cube.size,cube.size); ctx.restore(); }
+    ctx.shadowBlur=25; ctx.shadowColor="#ff00ff"; ctx.fillStyle="#ff00ff"; obstacles.forEach(o=>ctx.fillRect(o.x,o.y,o.width,o.height));
+    powerUps.forEach(p=>{ ctx.shadowBlur=20; ctx.shadowColor="#00ffff"; ctx.fillStyle=(Math.floor(p.blinkTimer/15)%2===0)?"rgba(0,255,255,0.8)":"rgba(0,255,255,0.2)"; ctx.fillRect(p.x,p.y,p.size,p.size); });
+    particles.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.life--; }); particles=particles.filter(p=>p.life>0); ctx.fillStyle=skins[currentSkin].color; particles.forEach(p=>ctx.fillRect(p.x,p.y,4,4));
+    ctx.shadowBlur=0; ctx.fillStyle="#00ffff"; ctx.font=(25*scaleFactor)+"px Arial"; ctx.textAlign="left"; ctx.fillText("Score: "+score,20,30); ctx.fillText("Recorde: "+highScore,20,60);
+    if(gameState==="exploding" && particles.length===0){ gameState="gameover"; document.getElementById("gameoverMenu").style.display="block"; if(score>highScore){ highScore=score; localStorage.setItem("neonHighScore",highScore);} }
     requestAnimationFrame(update);
 }
-
 update();
 </script>
 </body>
