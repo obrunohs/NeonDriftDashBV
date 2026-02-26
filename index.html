@@ -10,7 +10,7 @@ body{
     background:black;
     font-family:Arial;
     color:white;
-    touch-action: none; /* evita scroll no mobile */
+    touch-action: none;
 }
 canvas{ display:block; }
 #menu{
@@ -100,9 +100,9 @@ canvas.height = window.innerHeight;
 
 let scaleFactor = canvas.height / 900; // Base PC height = 900
 
-/* ================= EVITA SCROLL NO MOBILE ================= */
-document.body.addEventListener('touchstart', e => e.preventDefault(), {passive:false});
-document.body.addEventListener('touchmove', e => e.preventDefault(), {passive:false});
+/* ================= EVITA SCROLL NO CANVAS ================= */
+canvas.addEventListener('touchstart', e => e.preventDefault(), {passive:false});
+canvas.addEventListener('touchmove', e => e.preventDefault(), {passive:false});
 
 /* ================= SOM ================= */
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -369,7 +369,9 @@ document.addEventListener("keydown",e=>{
 document.addEventListener("mousedown", jumpAction);
 
 // Touch Mobile
-document.addEventListener("touchstart", jumpAction);
+document.addEventListener("touchstart", e=>{
+    if(e.target === canvas) jumpAction();
+}, {passive:false});
 
 /* ================= UPDATE ================= */
 function update(){
