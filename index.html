@@ -255,7 +255,6 @@ function createObstacle(){
         obstacles.push({x:canvas.width,y:canvas.height-groundHeight-150,width:width,height:150});
     }
     if(type===1){
-        // Obstáculo de cima normal (altura aleatória)
         obstacles.push({x:canvas.width,y:0,width:width,height:Math.random()*200 + 50});
     }
     if(type===2){
@@ -346,6 +345,28 @@ function backToMenu(){
     menuAudio.play();
 }
 
+/* ================= CONTROLES PARA CELULAR ================= */
+function jumpAction(){
+    if(!gameStarted && gameState==="playing"){
+        gameStarted = true;
+    }
+    if(gameState==="playing"){
+        velocityY = jumpForce;
+        playJumpSound();
+    }
+}
+
+// Teclado PC
+document.addEventListener("keydown",e=>{
+    if(e.code==="Space") jumpAction();
+});
+
+// Mouse PC
+document.addEventListener("mousedown", jumpAction);
+
+// Toque celular
+document.addEventListener("touchstart", jumpAction);
+
 /* ================= UPDATE ================= */
 function update(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -359,7 +380,6 @@ function update(){
             velocityY+=gravity;
             cube.y+=velocityY;
 
-            // Limite superior da tela
             if(cube.y < 0){
                 cube.y = 0;
                 velocityY = 0;
@@ -500,18 +520,6 @@ function update(){
 
     requestAnimationFrame(update);
 }
-
-document.addEventListener("keydown",e=>{
-    if(e.code==="Space"){
-        if(!gameStarted && gameState==="playing"){
-            gameStarted = true;
-        }
-        if(gameState==="playing"){
-            velocityY=jumpForce;
-            playJumpSound();
-        }
-    }
-});
 
 update();
 </script>
