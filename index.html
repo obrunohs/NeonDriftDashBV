@@ -1,10 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Neon Drift Dash BV</title>
-
 <style>
 body{
     margin:0;
@@ -12,200 +5,107 @@ body{
     background:black;
     font-family:Arial;
     color:white;
-    touch-action:none;
-    user-select:none;
 }
 
+/* CANVAS */
 canvas{
     display:block;
 }
 
+/* MENU CENTRAL */
 #menu{
     position:absolute;
     top:50%;
     left:50%;
     transform:translate(-50%,-50%);
     text-align:center;
+    width:90%;
 }
 
+/* TÍTULO */
+#menu h1{
+    font-size:8vw;
+    margin-bottom:10px;
+}
+
+/* TEXTO */
+#menu p{
+    font-size:4vw;
+}
+
+/* BOTÕES GRANDES MOBILE */
 button{
-    padding:15px 30px;
-    font-size:18px;
-    margin-top:20px;
-    cursor:pointer;
+    width:80%;
+    max-width:300px;
+    padding:15px;
+    font-size:5vw;
+    margin-top:15px;
     border:none;
+    border-radius:12px;
     background:#00ffff;
+    color:black;
 }
 
-/* BOTÃO MOBILE */
+/* SKINS GRID */
+#skins{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+}
+
+/* SKINS MAIORES */
+.skin-box{
+    width:60px;
+    height:60px;
+    margin:8px;
+    border:3px solid white;
+}
+
+.skin-selected{
+    border:4px solid yellow;
+}
+
+.lock-text{
+    font-size:10px;
+}
+
+/* INDICADOR SKIN */
+#skinIndicator{
+    position:absolute;
+    top:10px;
+    left:50%;
+    transform:translateX(-50%);
+    width:50px;
+    height:50px;
+}
+
+#skinIndicatorInner{
+    width:40px;
+    height:40px;
+}
+
+/* BOTÃO DE PULO */
 #btnJump{
     position: fixed;
-    bottom: 30px;
-    right: 30px;
-    width: 80px;
-    height: 80px;
-    font-size: 30px;
+    bottom: 25px;
+    right: 25px;
+    width: 90px;
+    height: 90px;
+    font-size: 35px;
     border-radius: 50%;
-    background: rgba(0,255,255,0.7);
+    background: rgba(0,255,255,0.8);
     border: none;
     color: black;
     z-index: 999;
 }
+
+/* GAME OVER */
+#gameoverMenu{
+    width:90%;
+}
+
+#gameoverMenu h1{
+    font-size:8vw;
+}
+
 </style>
-</head>
-
-<body>
-
-<audio id="menuMusic" src="menu.mp3" loop></audio>
-
-<canvas id="game"></canvas>
-
-<button id="btnJump">⬆️</button>
-
-<div id="menu">
-    <h1>Neon Drift Dash BV</h1>
-    <button onclick="startGame()">JOGAR</button>
-</div>
-
-<script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-
-/* RESPONSIVO */
-function resizeCanvas(){
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
-resizeCanvas();
-window.addEventListener("resize", resizeCanvas);
-
-/* CONFIG */
-let gravity = 0.7;
-let jumpForce = -13;
-let velocityY = 0;
-let speed = 6;
-let gameState = "menu";
-let gameStarted = false;
-
-let cube = { x:200, y:200, size:50 };
-
-let obstacles = [];
-let score = 0;
-
-/* SOM */
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-function playJumpSound(){
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.frequency.value = 600;
-    gain.gain.value = 0.1;
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.1);
-}
-
-/* CONTROLE */
-function jumpAction(){
-    if(!gameStarted && gameState==="playing"){
-        gameStarted = true;
-    }
-    if(gameState==="playing"){
-        velocityY = jumpForce;
-        playJumpSound();
-    }
-}
-
-/* TOQUE (CORRIGIDO) */
-document.addEventListener("touchstart", function(e){
-    e.preventDefault();
-    jumpAction();
-}, { passive:false });
-
-/* BOTÃO */
-document.getElementById("btnJump").addEventListener("touchstart", function(e){
-    e.preventDefault();
-    jumpAction();
-}, { passive:false });
-
-/* PC */
-document.addEventListener("keydown",e=>{
-    if(e.code==="Space") jumpAction();
-});
-document.addEventListener("mousedown", jumpAction);
-
-/* JOGO */
-function startGame(){
-    gameState="playing";
-    gameStarted=false;
-    score=0;
-    obstacles=[];
-    document.getElementById("menu").style.display="none";
-}
-
-function createObstacle(){
-    obstacles.push({
-        x: canvas.width,
-        y: canvas.height - 150,
-        width: 50,
-        height: 150
-    });
-}
-
-function update(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-
-    if(gameState==="playing"){
-
-        if(gameStarted){
-            velocityY += gravity;
-            cube.y += velocityY;
-
-            if(cube.y > canvas.height-50){
-                cube.y = canvas.height-50;
-                velocityY = 0;
-            }
-
-            if(Math.random() < 0.02){
-                createObstacle();
-                score++;
-            }
-
-            obstacles.forEach(o=>o.x -= speed);
-
-            obstacles.forEach(o=>{
-                if(cube.x < o.x+o.width &&
-                   cube.x+cube.size > o.x &&
-                   cube.y < o.y+o.height &&
-                   cube.y+cube.size > o.y){
-                    gameState="menu";
-                    document.getElementById("menu").style.display="block";
-                }
-            });
-        }
-    }
-
-    /* CUBO */
-    ctx.fillStyle="#00ffff";
-    ctx.fillRect(cube.x,cube.y,cube.size,cube.size);
-
-    /* OBSTACULOS */
-    ctx.fillStyle="#ff00ff";
-    obstacles.forEach(o=>{
-        ctx.fillRect(o.x,o.y,o.width,o.height);
-    });
-
-    /* TEXTO RESPONSIVO */
-    ctx.fillStyle="#00ffff";
-    ctx.font = (canvas.width * 0.05) + "px Arial";
-    ctx.fillText("Score: "+score,20,50);
-
-    requestAnimationFrame(update);
-}
-
-update();
-</script>
-
-</body>
-</html>
